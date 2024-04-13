@@ -1,0 +1,55 @@
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.io.OutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+
+public class SolTransfer {
+    public static void main(String[] args) throws Exception {
+        // Solana 节点的 RPC URL
+        String rpcUrl = "https://api.mainnet-beta.solana.com/";
+
+        // 发送者账户
+        String senderPublicKey = "YOUR_SENDER_PUBLIC_KEY";
+        String senderPrivateKey = "YOUR_SENDER_PRIVATE_KEY";
+
+        // 接收者账户
+        String recipientPublicKey = "RECIPIENT_PUBLIC_KEY";
+
+        // 转账金额 (单位: lamports)
+        long amount = 1000000; // 1 SOL = 1000000000 lamports
+
+        // 构建 JSON 格式的转账请求
+        String requestBody = String.format(
+            "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"sendTransaction\",\"params\":[{\"from\":\"%s\",\"to\":\"%s\",\"value\":%d}]}", 
+            senderPublicKey, recipientPublicKey, amount
+        );
+
+        // 发起 POST 请求
+        URL url = new URL(rpcUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("POST");
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setDoOutput(true);
+
+        // 发送请求体
+        try (OutputStream os = conn.getOutputStream()) {
+            byte[] input = requestBody.getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+
+        // 解析响应
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
+            StringBuilder response = new StringBuilder();
+            String responseLine;
+            while ((responseLine = br.readLine()) != null) {
+                response.append(responseLine.trim());
+            }
+            System.out.println("Response: " + response.toString());
+        }
+
+        // 关闭连接
+        conn.disconnect();
+    }
+}
