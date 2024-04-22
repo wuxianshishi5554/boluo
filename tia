@@ -1,0 +1,31 @@
+import requests
+import json
+
+# Celestia 节点的 REST API URL
+# 请替换为 Celestia 的实际 REST 端点
+rest_api_url = "https://rest.celestia.org" 
+
+# 查询余额的地址
+address = "celestia1YourAddressHere"  # 替换为您要查询的 Celestia 地址
+
+# 构建查询余额的 URL
+balance_url = f"{rest_api_url}/cosmos/bank/v1beta1/balances/{address}"
+
+# 发起 GET 请求
+response = requests.get(balance_url)
+
+# 检查响应状态
+if response.status_code != 200:
+    raise Exception("无法查询 TIA 余额")
+
+# 解析 JSON 响应
+balance_data = json.loads(response.text)
+
+# 查询 TIA 余额
+tia_balance = 0
+for coin in balance_data['balances']:
+    if coin['denom'] == 'utia':  # TIA 在 Celestia 中的最小单位是 utia
+        tia_balance = int(coin['amount']) / 1_000_000  # 将 utia 转换为 TIA
+
+print(f"Address: {address}")
+print(f"TIA Balance: {tia_balance} TIA")
